@@ -4,9 +4,20 @@
   "description": "Sort json files and return response",
   "main": "index.js",
   "scripts": {
-    "patch-release": "npm version patch && npm publish && git push --follow-tags",
     "test": "npm test"
   },
   "author": "https://www.financiallease.nl",
-  "license": "ISC"
+  "license": "ISC",
+  "bin": {
+    "json-sort-ci": "./index.js"
+  },
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "fs": "^0.0.1-security",
+    "json3": "^3.3.3",
+    "lodash": "^4.17.21",
+    "sort-json": "^2.0.1",
+    "underscore": "^1.13.6",
+    "yargs": "^17.6.2"
+  }
 }
