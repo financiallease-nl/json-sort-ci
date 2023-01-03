@@ -1,0 +1,12 @@
+{
+  "name": "json-sort-ci",
+  "version": "1.0.0",
+  "description": "Sort json files and return response",
+  "main": "index.js",
+  "scripts": {
+    "patch-release": "npm version patch && npm publish && git push --follow-tags",
+    "test": "npm test"
+  },
+  "author": "https://www.financiallease.nl",
+  "license": "ISC"
+}
