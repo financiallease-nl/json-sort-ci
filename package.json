@@ -1,6 +1,6 @@
 {
   "name": "json-sort-ci",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Sort json files and return response",
   "main": "index.js",
   "scripts": {
