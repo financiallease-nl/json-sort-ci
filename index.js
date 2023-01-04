@@ -8,19 +8,28 @@ const { hideBin } = require('yargs/helpers')
 const { exec } = require("child_process");
 
 yargs(hideBin(process.argv))
-    .command('alpha [port]', 'start the server', (yargs) => {
+    .command('$0 <file> [dry-run][excludes]', 'sort json alphabetically', yargs => {
+        const { argv } = yargs;
+        let files = argv["_"];
 
-    }, (argv) => {
-        if (argv.files) {
-            let ciCheckMode = argv['only-check'];
+        if (files) {
 
-            argv.files.forEach( async (file) => {
+            let {
+                dryRun,
+                excludes,
+            } = argv;
+
+            if (excludes?.length > 0) {
+                files = files.filter( file => !excludes.includes(/[^/]*$/.exec(file)[0]));
+            }
+
+            files.forEach( async (file) => {
                 let jsonFile = await fs.readFileSync(file);
                 let jsonContent = JSON.parse(jsonFile);
                 let sortedJsonContent = sortJson(jsonContent, {});
 
                 // No CI check mode. Just sort and update the given json file locally.
-                if (ciCheckMode === false) {
+                if (dryRun === false) {
                     exec(`sort-json ${file}`, (error) => {
                         if (error) {
                             console.log(`error: ${error.message}`);
@@ -38,25 +47,27 @@ yargs(hideBin(process.argv))
                 console.info(`${file} is already sorted alphabetically`);
                 return 0;
             });
-            // const options1 = { ignoreCase: true, reverse: true };
-            // const copy = sortJson(argv.files[0], options1);
-            // console.log(copy);
+
             return 0;
         }
 
         return yargs.showHelp();
     })
-    .option('files', {
-        alias: 'f',
-        type: 'array',
-        description: 'array of json files to be sorted'
+    .positional("file", {
+        type: "array",
+        required: true,
     })
-    .option('only-check', {
-        alias: 'oc',
+    .option('dry-run', {
+        alias: 'dr',
         type: 'boolean',
-        description: 'ci check mode, only checks if uploaded files are sorted',
+        description: 'only checks if uploaded files are sorted',
+        default: false,
+    })
+    .option('excludes', {
+        alias: 'ex',
+        type: 'array',
+        description: 'excludes set with files name not wished to be sorted',
         default: false,
     })
     .demandCommand()
-    .help('h')
     .parse()
