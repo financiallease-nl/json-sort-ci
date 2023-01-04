@@ -36,6 +36,7 @@ yargs(hideBin(process.argv))
                         }
                     });
 
+                    console.info(`${file} is sorted alphabetically!`);
                     return 0;
                 }
 
