@@ -1,0 +1,19 @@
+{
+    "object": {
+        "valueKey": 123,
+        "arrayKey": [{"c": 3, "b": 2}, {"d": "x", "g": "y"}],
+        "objectKey": { "a": 123, "b": 0 }
+    },
+    "array": [
+        { "a": 1 },
+        [ 1,2,3,4 ],
+        123,
+        "1",
+        "a"
+    ],
+    "_private": "secret",
+    "arrayObject": {
+        "0": [ 1 ],
+        "1": "s"
+    }
+}
