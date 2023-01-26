@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+require('colors');
 const sortJson = require('sort-json');
 const yargs = require('yargs');
 const fs = require('fs');
@@ -32,20 +33,20 @@ yargs(hideBin(process.argv))
                 if (dryRun === false) {
                     exec(`sort-json ${file}`, (error) => {
                         if (error) {
-                            console.log(`error: ${error.message}`);
+                            console.log(`error: ${error.message}`.red);
                         }
                     });
 
-                    console.info(`${file} is sorted alphabetically!`);
+                    console.info(`${file} is sorted alphabetically!`.green);
                     return 0;
                 }
 
                 // CI check mode. Compare sorted file and local file.
                 if (JSON.stringify(jsonContent) !== JSON.stringify(sortedJsonContent)) {
-                    throw new Error(`${file} not sorted alphabetically`);
+                    throw new Error(`${file} not sorted alphabetically`.red);
                 }
 
-                console.info(`${file} is already sorted alphabetically`);
+                console.info(`${file} is already sorted alphabetically`.green);
                 return 0;
             });
 
