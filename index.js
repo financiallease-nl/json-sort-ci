@@ -4,8 +4,6 @@ require('colors');
 const sortJson = require('sort-json');
 const yargs = require('yargs');
 const fs = require('fs');
-const _ = require('lodash');
-const { hideBin } = require('yargs/helpers')
 
 yargs.command(
     "$0 <files> [dry-run][excludes]",
