@@ -56,10 +56,10 @@ yargs.command(
 
                 // CI check mode. Compare sorted file and local file.
                 if (stringContent !== sortedStringContent) {
-                    console.error(`[${index}] ${fileName} not sorted`.red);
+                    console.error(`[DRYRUN][${index}] ${fileName} would be sorted`.red);
                     unsortedFiles.push(file);
                 } else if (!unsortedOnly) {
-                    console.info(`[${index}] ${fileName} is sorted`.green);
+                    console.info(`[DRYRUN][${index}] ${fileName} already sorted`.green);
                 }
             }));
 
