@@ -6,39 +6,48 @@ const yargs = require('yargs');
 const fs = require('fs');
 const _ = require('lodash');
 const { hideBin } = require('yargs/helpers')
-const { exec } = require("child_process");
 
-yargs(hideBin(process.argv))
-    .command('$0 <file> [dry-run][excludes]', 'sort json alphabetically', async(yargs) => {
-        const { argv } = yargs;
+yargs.command(
+    "$0 <files> [dry-run][excludes]",
+    "sort json alphabetically",
+    async(args) => {
+        const { argv } = args;
         let files = argv["_"];
-        if (files) {
+        if (files.length > 0) {
 
             let {
                 dryRun,
                 unsortedOnly,
                 indent,
+                force,
                 excludes,
             } = argv;
 
             if (excludes?.length > 0) {
-                files = files.filter( file => !excludes.includes(/[^/]*$/.exec(file)[0]));
+                files = files.filter(file => !excludes.includes(/[^/]*$/.exec(file)[0]));
             }
 
             let unsortedFiles = [];
             let index = 0;
             await Promise.all(files.map(file => {
                 index += 1;
-                let jsonFile = fs.readFileSync(file);
-                let jsonContent = JSON.parse(jsonFile);
-                let sortedJsonContent = sortJson(jsonContent, {});
+                const jsonFile = fs.readFileSync(file);
+                const jsonContent = JSON.parse(jsonFile);
+                const sortedJsonContent = sortJson(jsonContent, {});
+                const stringContent = JSON.stringify(jsonContent);
+                const sortedStringContent = JSON.stringify(sortedJsonContent);
+
 
                 // No CI check mode. Just sort and update the given json file locally.
                 const fileName = `${file}`.bold.dim;
+                let formattedContent = JSON.stringify(sortedJsonContent, null, indent);
                 if (dryRun === false) {
-                    if (JSON.stringify(jsonContent) !== JSON.stringify(sortedJsonContent)) {
+                    if (force && stringContent === sortedStringContent) {
+                        fs.writeFileSync(file, formattedContent)
+                        console.info(`[${index}] ${fileName} sorted (forced)`.blue);
+                        unsortedFiles.push(file);
+                    } else if (stringContent !== sortedStringContent) {
                         console.info(`[${index}] ${fileName} sorted`.yellow);
-                        let formattedContent = JSON.stringify(sortedJsonContent, null, indent);
                         fs.writeFileSync(file, formattedContent)
                         unsortedFiles.push(file);
                     } else if (!unsortedOnly) {
@@ -48,7 +57,7 @@ yargs(hideBin(process.argv))
                 }
 
                 // CI check mode. Compare sorted file and local file.
-                if (JSON.stringify(jsonContent) !== JSON.stringify(sortedJsonContent)) {
+                if (stringContent !== sortedStringContent) {
                     console.error(`[${index}] ${fileName} not sorted`.red);
                     unsortedFiles.push(file);
                 } else if (!unsortedOnly) {
@@ -72,9 +81,15 @@ yargs(hideBin(process.argv))
 
         return yargs.showHelp();
     })
-    .positional("file", {
+    .positional("files", {
         type: "array",
         required: true,
+    })
+    .option('force', {
+        alias: 'f',
+        type: 'boolean',
+        description: 'Forces every file to sort, also if it is already sorted',
+        default: false,
     })
     .option('indent', {
         alias: 'i',
@@ -89,16 +104,20 @@ yargs(hideBin(process.argv))
         default: false,
     })
     .option('dry-run', {
-        alias: 'dr',
+        alias: 'd',
         type: 'boolean',
         description: 'only checks if uploaded files are sorted',
         default: false,
     })
     .option('excludes', {
-        alias: 'ex',
+        alias: 'x',
         type: 'array',
         description: 'excludes set with files name not wished to be sorted',
         default: false,
     })
+    .usage("$0 <file> [dry-run] [excludes] [indent] [unsuported-only]")
+    .help()
+    .completion()
     .demandCommand()
     .parse()
+    .argv
