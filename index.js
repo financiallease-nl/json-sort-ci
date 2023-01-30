@@ -1,74 +1,121 @@
 #!/usr/bin/env node
 
+require('colors');
 const sortJson = require('sort-json');
 const yargs = require('yargs');
 const fs = require('fs');
-const _ = require('lodash');
-const { hideBin } = require('yargs/helpers')
-const { exec } = require("child_process");
 
-yargs(hideBin(process.argv))
-    .command('$0 <file> [dry-run][excludes]', 'sort json alphabetically', yargs => {
-        const { argv } = yargs;
+yargs.command(
+    "$0 <files> [dry-run][excludes]",
+    "sort json alphabetically",
+    async(args) => {
+        const { argv } = args;
         let files = argv["_"];
-
-        if (files) {
+        if (files.length > 0) {
 
             let {
                 dryRun,
+                unsortedOnly,
+                indent,
+                force,
                 excludes,
             } = argv;
 
             if (excludes?.length > 0) {
-                files = files.filter( file => !excludes.includes(/[^/]*$/.exec(file)[0]));
+                files = files.filter(file => !excludes.includes(/[^/]*$/.exec(file)[0]));
             }
 
-            files.forEach( async (file) => {
-                let jsonFile = await fs.readFileSync(file);
-                let jsonContent = JSON.parse(jsonFile);
-                let sortedJsonContent = sortJson(jsonContent, {});
+            let unsortedFiles = [];
+            let index = 0;
+            await Promise.all(files.map(file => {
+                index += 1;
+                const jsonFile = fs.readFileSync(file);
+                const jsonContent = JSON.parse(jsonFile);
+                const sortedJsonContent = sortJson(jsonContent, {});
+                const stringContent = JSON.stringify(jsonContent);
+                const sortedStringContent = JSON.stringify(sortedJsonContent);
+
 
                 // No CI check mode. Just sort and update the given json file locally.
+                const fileName = `${file}`.bold.dim;
+                let formattedContent = JSON.stringify(sortedJsonContent, null, indent);
                 if (dryRun === false) {
-                    exec(`sort-json ${file}`, (error) => {
-                        if (error) {
-                            console.log(`error: ${error.message}`);
-                        }
-                    });
-
-                    console.info(`${file} is sorted alphabetically!`);
-                    return 0;
+                    if (force && stringContent === sortedStringContent) {
+                        fs.writeFileSync(file, formattedContent)
+                        console.info(`[${index}] ${fileName} sorted (forced)`.blue);
+                        unsortedFiles.push(file);
+                    } else if (stringContent !== sortedStringContent) {
+                        console.info(`[${index}] ${fileName} sorted`.yellow);
+                        fs.writeFileSync(file, formattedContent)
+                        unsortedFiles.push(file);
+                    } else if (!unsortedOnly) {
+                        console.info(`[${index}] ${fileName} is already sorted`.green);
+                    }
+                    return;
                 }
 
                 // CI check mode. Compare sorted file and local file.
-                if (JSON.stringify(jsonContent) !== JSON.stringify(sortedJsonContent)) {
-                    throw new Error(`${file} not sorted alphabetically`);
+                if (stringContent !== sortedStringContent) {
+                    console.error(`[DRYRUN][${index}] ${fileName} would be sorted`.red);
+                    unsortedFiles.push(file);
+                } else if (!unsortedOnly) {
+                    console.info(`[DRYRUN][${index}] ${fileName} already sorted`.green);
                 }
+            }));
 
-                console.info(`${file} is already sorted alphabetically`);
-                return 0;
-            });
 
-            return 0;
+            if (unsortedFiles.length > 0) {
+                if (dryRun) {
+                    console.info(`\n${unsortedFiles.length} of ${files} file(s) not sorted`.red);
+                     process.exit(1);
+                }
+                console.info(`\n${unsortedFiles.length} files sorted`.yellow.bold);
+                process.exit(0);
+            }
+
+            console.info(`\nAll files (${files.length}) are sorted`.green.bold);
+            process.exit(0);
         }
 
         return yargs.showHelp();
     })
-    .positional("file", {
+    .positional("files", {
         type: "array",
         required: true,
     })
+    .option('force', {
+        alias: 'f',
+        type: 'boolean',
+        description: 'Forces every file to sort, also if it is already sorted',
+        default: false,
+    })
+    .option('indent', {
+        alias: 'i',
+        type: 'integer',
+        description: 'indents to apply when the file is formatted',
+        default: 4,
+    })
+    .option('unsorted-only', {
+        alias: 'u',
+        type: 'boolean',
+        description: 'only show output for unsorted files',
+        default: false,
+    })
     .option('dry-run', {
-        alias: 'dr',
+        alias: 'd',
         type: 'boolean',
         description: 'only checks if uploaded files are sorted',
         default: false,
     })
     .option('excludes', {
-        alias: 'ex',
+        alias: 'x',
         type: 'array',
         description: 'excludes set with files name not wished to be sorted',
         default: false,
     })
+    .usage("$0 <file> [dry-run] [excludes] [indent] [unsuported-only]")
+    .help()
+    .completion()
     .demandCommand()
     .parse()
+    .argv
