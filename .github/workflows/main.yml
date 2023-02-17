@@ -1,0 +1,149 @@
+name: Pipeline
+on:
+  push:
+    branches:
+      - '*'
+  workflow_call:
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        description: Aws Access Key Id for ec2 instance user
+        required: true
+      AWS_ACCESS_KEY_SECRET:
+        description: Aws Secret Access key for ec2 instance user
+        required: true
+      AWS_REGION:
+        description: Aws region (eu-central-1)
+        required: true
+      EC2_GITHUB_TOKEN:
+        description: Github token to download repo in EC2
+        required: true
+    inputs:
+      workflow:
+        description: define current running workflow
+        required: true
+        type: string
+        default: main
+jobs:
+  start-ec2-runner:
+    name: 🟢 Start self-hosted EC2 runner
+    runs-on: ubuntu-latest
+    outputs:
+      label: ${{ steps.start-ec2-runner.outputs.label }}
+      ec2-instance-id: ${{ steps.start-ec2-runner.outputs.ec2-instance-id }}
+    steps:
+      - name: ⚙️  - Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+            aws-region: ${{ secrets.AWS_REGION }}
+      - name: 🟢 - Start EC2 runner
+        id: start-ec2-runner
+        uses: machulav/ec2-github-runner@v2
+        with:
+          mode: start
+          github-token: ${{ secrets.EC2_GITHUB_TOKEN }}
+          ec2-image-id: ami-06148e0e81e5187c8
+          ec2-instance-type: t3.medium
+          subnet-id: subnet-0f472ca2212c78941
+          security-group-id: sg-0878090ea8018d234
+          iam-role-name: GitHubEc2AccessRole # optional, requires additional permissions
+          aws-resource-tags:
+              > # optional, requires additional permissions
+              [
+                {"Key": "Name", "Value": "ec2-github-runner"},
+                {"Key": "GitHubRepository", "Value": "${{ github.repository }}"}
+              ]
+  lint:
+    name: 🔍 Checking code syntax
+    needs: start-ec2-runner # required to start the main job when the runner is ready
+    runs-on: ${{ needs.start-ec2-runner.outputs.label }} # run the job on the newly created runner
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+      - uses: actions/checkout@v3
+      - name: ⚙️  - setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      # install applicaion dependencies
+      - name: 🔍 - Lint
+        run: |
+          npm install
+          npm run lint
+  deploy:
+    if: ${{ inputs.workflow == 'tags' }}
+    permissions:
+      packages: write
+    # run only for new release/tag
+    name: 📦 - Deploy package
+    needs:
+      - start-ec2-runner
+      - lint
+    runs-on: ${{ needs.start-ec2-runner.outputs.label }} # run the job on the newly created runner
+    strategy:
+      matrix:
+        node-version: [ 16.x ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+            node-version: ${{ matrix.node-version }}
+            registry-url: "https://npm.pkg.github.com"
+            scope: "@financiallease-nl"
+      - run: |
+          npm pack
+          npm publish
+        name: 📦 - Deploy package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set env
+        run: |
+          apt-get update -qq
+          apt-get install -qqy jq
+          echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" | sed "s|/|-|g" | tee -a $GITHUB_ENV
+          PKG_RERPONSE=$(curl \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            https://api.github.com/orgs/financiallease-nl/packages/npm/json-sort-ci)
+          PKG_URL=$(echo $PKG_RERPONSE | jq -r '.html_url')
+          echo "PKG_URL=$PKG_URL" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.EC2_GITHUB_TOKEN }}
+      - uses: actions/create-release@v1
+        name: 📤 - Release
+        env:
+          # This token is provided by Actions, you do not need to create your own token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.RELEASE_VERSION }}
+          release_name: Release ${{ env.RELEASE_VERSION }}
+          body: |
+            Details ${{ env.RELEASE_VERSION }}
+            - ${{ env.PKG_URL }}
+          draft: false
+          prerelease: false
+
+  stop-runner:
+    name: 🔴 Stop self-hosted EC2 runner
+    needs:
+      - start-ec2-runner # required to get output from the start-runner job
+      - lint # required to wait when the main job is done
+      - deploy
+    runs-on: ubuntu-latest
+    if: ${{ always() }} # required to stop the runner even if the error happened in the previous jobs
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Stop EC2 runner
+        uses: machulav/ec2-github-runner@v2
+        with:
+          mode: stop
+          github-token: ${{ secrets.EC2_GITHUB_TOKEN }}
+          label: ${{ needs.start-ec2-runner.outputs.label }}
+          ec2-instance-id: ${{ needs.start-ec2-runner.outputs.ec2-instance-id }}
