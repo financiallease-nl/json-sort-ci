@@ -3,6 +3,27 @@ on:
   push:
     branches:
       - '*'
+  workflow_call:
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        description: Aws Access Key Id for ec2 instance user
+        required: true
+      AWS_ACCESS_KEY_SECRET:
+          description: Aws Secret Access key for ec2 instance user
+          required: true
+      AWS_REGION:
+          description: Aws region (eu-central-1)
+          required: true
+      EC2_GITHUB_TOKEN:
+          description: Github token to download repo in EC2
+          required: true
+    inputs:
+      workflow:
+        description: define current running workflow
+        required: true
+        type: string
+        default: main
+
 jobs:
   start-ec2-runner:
     name: 🟢 Start self-hosted EC2 runner
