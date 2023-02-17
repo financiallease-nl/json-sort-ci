@@ -7,6 +7,9 @@ node_modules/
 # vim files
 .sw[a-z]
 
+# git
+*.orig
+
 # packages
 financiallease-nl-json-sort-ci-*.tgz
 
