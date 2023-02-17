@@ -1,4 +1,4 @@
-name: Pipeline
+name: Default workflow
 on:
   push:
     branches:
@@ -96,7 +96,7 @@ jobs:
           npm publish
         name: 📦 - Deploy package
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.EC2_GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Set env
         run: |
           apt-get update -qq
@@ -109,12 +109,12 @@ jobs:
           PKG_URL=$(echo $PKG_RERPONSE | jq -r '.html_url')
           echo "PKG_URL=$PKG_URL" >> $GITHUB_ENV
         env:
-          GITHUB_TOKEN: ${{ secrets.EC2_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/create-release@v1
         name: 📤 - Release
         env:
           # This token is provided by Actions, you do not need to create your own token
-          GITHUB_TOKEN: ${{ secrets.EC2_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ env.RELEASE_VERSION }}
           release_name: Release ${{ env.RELEASE_VERSION }}
