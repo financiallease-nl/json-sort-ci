@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-require('colors');
-const sortJson = require('sort-json');
-const yargs = require('yargs');
-const fs = require('fs');
+require("colors");
+const sortJson = require("sort-json");
+const yargs = require("yargs");
+const fs = require("fs");
 
 yargs.command(
     "$0 <files> [dry-run][excludes]",
@@ -41,14 +41,17 @@ yargs.command(
                 let formattedContent = JSON.stringify(sortedJsonContent, null, indent);
                 if (dryRun === false) {
                     if (force && stringContent === sortedStringContent) {
-                        fs.writeFileSync(file, formattedContent)
+                        fs.writeFileSync(file, formattedContent);
+                        /* eslint-disable-next-line no-console */
                         console.info(`[${index}] ${fileName} sorted (forced)`.blue);
                         unsortedFiles.push(file);
                     } else if (stringContent !== sortedStringContent) {
+                        /* eslint-disable-next-line no-console */
                         console.info(`[${index}] ${fileName} sorted`.yellow);
-                        fs.writeFileSync(file, formattedContent)
+                        fs.writeFileSync(file, formattedContent);
                         unsortedFiles.push(file);
                     } else if (!unsortedOnly) {
+                        /* eslint-disable-next-line no-console */
                         console.info(`[${index}] ${fileName} is already sorted`.green);
                     }
                     return;
@@ -56,9 +59,11 @@ yargs.command(
 
                 // CI check mode. Compare sorted file and local file.
                 if (stringContent !== sortedStringContent) {
+                    /* eslint-disable-next-line no-console */
                     console.error(`[DRYRUN][${index}] ${fileName} would be sorted`.red);
                     unsortedFiles.push(file);
                 } else if (!unsortedOnly) {
+                    /* eslint-disable-next-line no-console */
                     console.info(`[DRYRUN][${index}] ${fileName} already sorted`.green);
                 }
             }));
@@ -66,13 +71,16 @@ yargs.command(
 
             if (unsortedFiles.length > 0) {
                 if (dryRun) {
+                    /* eslint-disable-next-line no-console */
                     console.info(`\n${unsortedFiles.length} of ${files} file(s) not sorted`.red);
-                     process.exit(1);
+                    process.exit(1);
                 }
+                /* eslint-disable-next-line no-console */
                 console.info(`\n${unsortedFiles.length} files sorted`.yellow.bold);
                 process.exit(0);
             }
 
+            /* eslint-disable-next-line no-console */
             console.info(`\nAll files (${files.length}) are sorted`.green.bold);
             process.exit(0);
         }
@@ -83,34 +91,34 @@ yargs.command(
         type: "array",
         required: true,
     })
-    .option('force', {
-        alias: 'f',
-        type: 'boolean',
-        description: 'Forces every file to sort, also if it is already sorted',
+    .option("force", {
+        alias: "f",
+        type: "boolean",
+        description: "Forces every file to sort, also if it is already sorted",
         default: false,
     })
-    .option('indent', {
-        alias: 'i',
-        type: 'integer',
-        description: 'indents to apply when the file is formatted',
+    .option("indent", {
+        alias: "i",
+        type: "integer",
+        description: "indents to apply when the file is formatted",
         default: 4,
     })
-    .option('unsorted-only', {
-        alias: 'u',
-        type: 'boolean',
-        description: 'only show output for unsorted files',
+    .option("unsorted-only", {
+        alias: "u",
+        type: "boolean",
+        description: "only show output for unsorted files",
         default: false,
     })
-    .option('dry-run', {
-        alias: 'd',
-        type: 'boolean',
-        description: 'only checks if uploaded files are sorted',
+    .option("dry-run", {
+        alias: "d",
+        type: "boolean",
+        description: "only checks if uploaded files are sorted",
         default: false,
     })
-    .option('excludes', {
-        alias: 'x',
-        type: 'array',
-        description: 'excludes set with files name not wished to be sorted',
+    .option("excludes", {
+        alias: "x",
+        type: "array",
+        description: "excludes set with files name not wished to be sorted",
         default: false,
     })
     .usage("$0 <file> [dry-run] [excludes] [indent] [unsuported-only]")
@@ -118,4 +126,4 @@ yargs.command(
     .completion()
     .demandCommand()
     .parse()
-    .argv
+    .argv;
