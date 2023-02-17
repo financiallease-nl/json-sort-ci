@@ -9,20 +9,21 @@ on:
         description: Aws Access Key Id for ec2 instance user
         required: true
       AWS_ACCESS_KEY_SECRET:
-        description: Aws Secret Access key for ec2 instance user
-        required: true
+          description: Aws Secret Access key for ec2 instance user
+          required: true
       AWS_REGION:
-        description: Aws region (eu-central-1)
-        required: true
+          description: Aws region (eu-central-1)
+          required: true
       EC2_GITHUB_TOKEN:
-        description: Github token to download repo in EC2
-        required: true
+          description: Github token to download repo in EC2
+          required: true
     inputs:
       workflow:
         description: define current running workflow
         required: true
         type: string
         default: main
+
 jobs:
   start-ec2-runner:
     name: 🟢 Start self-hosted EC2 runner
@@ -73,10 +74,8 @@ jobs:
           npm install
           npm run lint
   deploy:
-    if: ${{ inputs.workflow == 'tags' }}
-    permissions:
-      packages: write
     # run only for new release/tag
+    if: ${{ inputs.workflow == 'tags' }}
     name: 📦 - Deploy package
     needs:
       - start-ec2-runner
@@ -97,7 +96,7 @@ jobs:
           npm publish
         name: 📦 - Deploy package
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.EC2_GITHUB_TOKEN }}
       - name: Set env
         run: |
           apt-get update -qq
@@ -115,7 +114,7 @@ jobs:
         name: 📤 - Release
         env:
           # This token is provided by Actions, you do not need to create your own token
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.EC2_GITHUB_TOKEN }}
         with:
           tag_name: ${{ env.RELEASE_VERSION }}
           release_name: Release ${{ env.RELEASE_VERSION }}
