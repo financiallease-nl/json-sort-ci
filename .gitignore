@@ -1,2 +1,12 @@
-.idea
+.idea/
+
+# Node
+.npmrc
 node_modules/
+
+# vim files
+.sw[a-z]
+
+# packages
+financiallease-nl-json-sort-ci-*.tgz
+
