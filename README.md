@@ -1,5 +1,4 @@
-
-# json-sort-ci
+## json-sort-ci
 
 Json files sort cli to be used and checked in the ci/cd workflow.
 Sort is alphabetically.
@@ -35,4 +34,7 @@ json-sort-ci -h
   Also apply sorting to files that are already sorted. Useful in combination with `--indent`.
   Result is that these files will be reformatted.
 
+### Deploy new version
 
+Use the `deploy.sh` script
+See `deploy.sh --help` for info

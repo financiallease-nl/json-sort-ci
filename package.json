@@ -1,22 +1,39 @@
 {
-    "author": "https://www.financiallease.nl",
-    "bin": {
-        "json-sort-ci": "./index.js"
-    },
-    "dependencies": {
-        "colors": "^1.4.0",
-        "fs": "^0.0.1-security",
-        "json3": "^3.3.3",
-        "lodash": "^4.17.21",
-        "sort-json": "^2.0.1",
-        "yargs": "^17.6.2"
-    },
-    "description": "Sort json files and return response",
-    "license": "ISC",
-    "main": "index.js",
-    "name": "json-sort-ci",
-    "scripts": {
-        "test": "npm test"
-    },
-    "version": "1.0.6"
+  "name": "@financiallease-nl/json-sort-ci",
+  "version": "1.0.4",
+  "description": "Sort json files and return response",
+  "main": "index.js",
+  "author": "https://www.financiallease.nl",
+  "license": "ISC",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://https://github.com/financiallease-nl/json-sort-ci"
+  },
+  "engines": {
+    "node": "16.x || 18.x"
+  },
+  "scripts": {
+    "test": "npm test",
+    "lint": "eslint --config .eslintrc.js '*.js'",
+    "autoformat": "npm run lint -- --fix"
+  },
+  "bin": {
+    "json-sort-ci": "./index.js"
+  },
+  "dependencies": {
+    "colors": "^1.4.0",
+    "fs": "^0.0.1-security",
+    "json3": "^3.3.3",
+    "lodash": "^4.17.21",
+    "sort-json": "^2.0.1",
+    "yargs": "^17.6.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.34.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-sort-exports": "^0.8.0"
+  }
 }
