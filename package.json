@@ -24,11 +24,11 @@
     "json-sort-ci": "./index.js"
   },
   "dependencies": {
+    "@financiallease-nl/sort-json": "^2.1.0",
     "colors": "^1.4.0",
     "fs": "^0.0.1-security",
     "json3": "^3.3.3",
     "lodash": "^4.17.21",
-    "@financiallease-nl/sort-json": "^2.1.0",
     "yargs": "^17.6.2"
   },
   "devDependencies": {
