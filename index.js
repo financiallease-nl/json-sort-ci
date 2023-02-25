@@ -19,6 +19,8 @@ yargs.command(
                 indent,
                 force,
                 excludes,
+                ignoreCase,
+                secondarySortByValue,
             } = argv;
 
             if (excludes?.length > 0) {
@@ -31,7 +33,10 @@ yargs.command(
                 index += 1;
                 const jsonFile = fs.readFileSync(file);
                 const jsonContent = JSON.parse(jsonFile);
-                const sortedJsonContent = sortJson(jsonContent, {});
+                const sortedJsonContent = sortJson(jsonContent, {
+                    ignoreCase,
+                    secondarySortByValue,
+                });
                 const stringContent = JSON.stringify(jsonContent);
                 const sortedStringContent = JSON.stringify(sortedJsonContent);
 
@@ -119,6 +124,18 @@ yargs.command(
         alias: "x",
         type: "array",
         description: "excludes set with files name not wished to be sorted",
+        default: false,
+    })
+    .option("secondary-sort-by-value", {
+        alias: "sv",
+        description: "Sort arrays of objects with identical keys by their value as well",
+        type: "boolean",
+        default: false,
+    })
+    .option("ignore-case", {
+        alias: "ic",
+        description: "Sort case-invariant",
+        type: "boolean",
         default: false,
     })
     .usage("$0 <file> [dry-run] [excludes] [indent] [unsuported-only]")
