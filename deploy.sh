@@ -96,6 +96,9 @@ if [[ "$(git rev-parse --abbrev-ref @)" != "main" ]]; then
     fi
 fi
 
+info "Verifying pre-release"
+npm run lint
+
 NEWEST_VERSION=$(echo -e "$CURRENT_VERSION\n$VERSION" | sort -V | tail -1)
 if [[ "$NEWEST_VERSION" != "$VERSION" ]] || [[ "$VERSION" = "$CURRENT_VERSION" ]]; then
     error "Current version ($CURRENT_VERSION) is same or higher than the new tag ($VERSION)"
