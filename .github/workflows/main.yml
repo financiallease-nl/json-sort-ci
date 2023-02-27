@@ -68,11 +68,14 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      # install applicaion dependencies
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@financiallease-nl"
       - name: 🔍 - Lint
         run: |
           npm install
           npm run lint
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   deploy:
     if: ${{ inputs.workflow == 'tags' }}
     # run only for new release/tag
@@ -88,13 +91,13 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-            node-version: ${{ matrix.node-version }}
-            registry-url: "https://npm.pkg.github.com"
-            scope: "@financiallease-nl"
-      - run: |
+          node-version: ${{ matrix.node-version }}
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@financiallease-nl"
+      - name: 📦 - Deploy package
+        run: |
           npm pack
           npm publish
-        name: 📦 - Deploy package
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Set env
