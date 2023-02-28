@@ -16,7 +16,6 @@
     "node": "16.x || 18.x"
   },
   "scripts": {
-    "test": "npm test",
     "lint": "eslint --config .eslintrc.js '*.js'",
     "autoformat": "npm run lint -- --fix"
   },

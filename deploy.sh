@@ -52,7 +52,7 @@ parseVersion () {
         exit 1
     fi
     FULL_VERSION=${BASH_REMATCH[0]}
-    VERSION=${BASH_REMATCH[1]}
+    VERSION=${FULL_VERSION:1}
     MAJOR=${BASH_REMATCH[2]}
     MINOR=${BASH_REMATCH[3]}
     PATCH=${BASH_REMATCH[4]}
@@ -95,6 +95,9 @@ if [[ "$(git rev-parse --abbrev-ref @)" != "main" ]]; then
         exit 2
     fi
 fi
+
+info "Verifying pre-release"
+npm run lint
 
 NEWEST_VERSION=$(echo -e "$CURRENT_VERSION\n$VERSION" | sort -V | tail -1)
 if [[ "$NEWEST_VERSION" != "$VERSION" ]] || [[ "$VERSION" = "$CURRENT_VERSION" ]]; then
