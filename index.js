@@ -104,7 +104,7 @@ yargs.command(
         default: false,
     })
     .option("indent", {
-        alias: "i",
+        alias: "n",
         type: "integer",
         description: "indents to apply when the file is formatted",
         default: 4,
@@ -134,7 +134,7 @@ yargs.command(
         default: false,
     })
     .option("ignore-case", {
-        alias: "c",
+        alias: "i",
         description: "Sort case-invariant",
         type: "boolean",
         default: false,
