@@ -111,6 +111,9 @@ jobs:
             https://api.github.com/orgs/financiallease-nl/packages/npm/json-sort-ci)
           PKG_URL=$(echo $PKG_RERPONSE | jq -r '.html_url')
           echo "PKG_URL=$PKG_URL" >> $GITHUB_ENV
+          if [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-(alpha|beta|rc)[0-9]+$ ]]; then
+              echo "match=true" >> $GITHUB_OUTPUT
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/create-release@v1
@@ -125,7 +128,7 @@ jobs:
             Details ${{ env.RELEASE_VERSION }}
             - ${{ env.PKG_URL }}
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.check-tag.outputs.match == 'true' }}
 
   stop-runner:
     name: 🔴 Stop self-hosted EC2 runner
