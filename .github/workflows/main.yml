@@ -128,7 +128,7 @@ jobs:
             Details ${{ env.RELEASE_VERSION }}
             - ${{ env.PKG_URL }}
           draft: false
-          prerelease: ${{ env.PRE_RELEASE == "true" }}
+          prerelease: ${{ env.PRE_RELEASE == 'true' }}
 
   stop-runner:
     name: 🔴 Stop self-hosted EC2 runner
