@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 
 require("colors");
-const sortJson = require("sort-json");
+const sortJson = require("@financiallease-nl/sort-json");
 const yargs = require("yargs");
 const fs = require("fs");
 
+const usage = "$0 <file> <file> [--dry-run] [--excludes EXCLUDES] [--indent N] [--ignore-case] [ --secondary-sort-by-value] [--unsorted-only] [--help]";
+const description = require("./package.json").description;
+
 yargs.command(
-    "$0 <files> [dry-run][excludes]",
-    "sort json alphabetically",
-    async(args) => {
+    usage,
+    description,
+    async (args) => {
         const { argv } = args;
         let files = argv["_"];
         if (files.length > 0) {
@@ -19,6 +22,8 @@ yargs.command(
                 indent,
                 force,
                 excludes,
+                ignoreCase,
+                secondarySortByValue,
             } = argv;
 
             if (excludes?.length > 0) {
@@ -31,7 +36,10 @@ yargs.command(
                 index += 1;
                 const jsonFile = fs.readFileSync(file);
                 const jsonContent = JSON.parse(jsonFile);
-                const sortedJsonContent = sortJson(jsonContent, {});
+                const sortedJsonContent = sortJson(jsonContent, {
+                    ignoreCase,
+                    secondarySortByValue,
+                });
                 const stringContent = JSON.stringify(jsonContent);
                 const sortedStringContent = JSON.stringify(sortedJsonContent);
 
@@ -84,8 +92,6 @@ yargs.command(
             console.info(`\nAll files (${files.length}) are sorted`.green.bold);
             process.exit(0);
         }
-
-        return yargs.showHelp();
     })
     .positional("files", {
         type: "array",
@@ -98,7 +104,7 @@ yargs.command(
         default: false,
     })
     .option("indent", {
-        alias: "i",
+        alias: "n",
         type: "integer",
         description: "indents to apply when the file is formatted",
         default: 4,
@@ -121,8 +127,20 @@ yargs.command(
         description: "excludes set with files name not wished to be sorted",
         default: false,
     })
-    .usage("$0 <file> [dry-run] [excludes] [indent] [unsuported-only]")
+    .option("secondary-sort-by-value", {
+        alias: "s",
+        description: "Sort arrays of objects with identical keys by their value as well",
+        type: "boolean",
+        default: false,
+    })
+    .option("ignore-case", {
+        alias: "i",
+        description: "Sort case-invariant",
+        type: "boolean",
+        default: false,
+    })
     .help()
+    .usage(usage)
     .completion()
     .demandCommand()
     .parse()

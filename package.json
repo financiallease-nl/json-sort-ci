@@ -1,6 +1,6 @@
 {
   "name": "@financiallease-nl/json-sort-ci",
-  "version": "1.0.7",
+  "version": "1.1.0-rc7",
   "description": "Sort json files and return response",
   "main": "index.js",
   "author": "https://www.financiallease.nl",
@@ -16,7 +16,6 @@
     "node": "16.x || 18.x"
   },
   "scripts": {
-    "test": "npm test",
     "lint": "eslint --config .eslintrc.js '*.js'",
     "autoformat": "npm run lint -- --fix"
   },
@@ -24,11 +23,11 @@
     "json-sort-ci": "./index.js"
   },
   "dependencies": {
+    "@financiallease-nl/sort-json": "^3.0.0",
     "colors": "^1.4.0",
     "fs": "^0.0.1-security",
     "json3": "^3.3.3",
     "lodash": "^4.17.21",
-    "sort-json": "^2.0.1",
     "yargs": "^17.6.2"
   },
   "devDependencies": {

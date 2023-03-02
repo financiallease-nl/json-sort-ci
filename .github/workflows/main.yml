@@ -68,11 +68,14 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      # install applicaion dependencies
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@financiallease-nl"
       - name: 🔍 - Lint
         run: |
           npm install
           npm run lint
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   deploy:
     if: ${{ inputs.workflow == 'tags' }}
     # run only for new release/tag
@@ -88,16 +91,17 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-            node-version: ${{ matrix.node-version }}
-            registry-url: "https://npm.pkg.github.com"
-            scope: "@financiallease-nl"
-      - run: |
+          node-version: ${{ matrix.node-version }}
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@financiallease-nl"
+      - name: 📦 - Deploy package
+        run: |
           npm pack
           npm publish
-        name: 📦 - Deploy package
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Set env
+        shell: bash
         run: |
           apt-get update -qq
           apt-get install -qqy jq
@@ -107,7 +111,11 @@ jobs:
             -H "Authorization: Bearer ${GITHUB_TOKEN}" \
             https://api.github.com/orgs/financiallease-nl/packages/npm/json-sort-ci)
           PKG_URL=$(echo $PKG_RERPONSE | jq -r '.html_url')
-          echo "PKG_URL=$PKG_URL" >> $GITHUB_ENV
+          set -x
+          echo "PKG_URL=$PKG_URL" | tee -a $GITHUB_ENV
+          if [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-(alpha|beta|rc)[0-9]+$ ]]; then
+              echo "PRE_RELEASE=true" | tee -a $GITHUB_ENV
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/create-release@v1
@@ -122,7 +130,7 @@ jobs:
             Details ${{ env.RELEASE_VERSION }}
             - ${{ env.PKG_URL }}
           draft: false
-          prerelease: false
+          prerelease: ${{ env.PRE_RELEASE == 'true' }}
 
   stop-runner:
     name: 🔴 Stop self-hosted EC2 runner
