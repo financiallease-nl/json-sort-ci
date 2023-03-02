@@ -1,6 +1,6 @@
 {
   "name": "@financiallease-nl/json-sort-ci",
-  "version": "1.1.0-rc3",
+  "version": "1.1.0-rc4",
   "description": "Sort json files and return response",
   "main": "index.js",
   "author": "https://www.financiallease.nl",
