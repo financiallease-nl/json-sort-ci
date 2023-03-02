@@ -101,6 +101,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Set env
+        shell: bash
         run: |
           apt-get update -qq
           apt-get install -qqy jq
@@ -110,7 +111,8 @@ jobs:
             -H "Authorization: Bearer ${GITHUB_TOKEN}" \
             https://api.github.com/orgs/financiallease-nl/packages/npm/json-sort-ci)
           PKG_URL=$(echo $PKG_RERPONSE | jq -r '.html_url')
-          echo "PKG_URL=$PKG_URL" >> $GITHUB_ENV
+          set -x
+          echo "PKG_URL=$PKG_URL" | tee -a $GITHUB_ENV
           if [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-(alpha|beta|rc)[0-9]+$ ]]; then
               echo "PRE_RELEASE=true" | tee -a $GITHUB_ENV
           fi
